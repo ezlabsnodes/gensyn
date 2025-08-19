@@ -9,9 +9,6 @@ fi
 rm -rf officialauto.zip nonofficialauto.zip systemd.zip
 rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
 
-# Install Automation Tools
-sudo apt-get update
-sudo apt-get install expect -y
 sudo apt-get install -y unzip
 
 # Create directory 'ezlabs'
@@ -28,8 +25,8 @@ cd ~
 rm -rf rl-swarm
 
 # Download and Unzip ezlabs7.zip, then change to rl-swarm directory
-wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/systemd.zip && \
-unzip systemd.zip && \
+wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/officialauto.zip && \
+unzip officialauto.zip && \
 cd ~/rl-swarm
 python3 -m venv /root/rl-swarm/.venv
 chmod +x /root/rl-swarm/run_rl_swarm.sh
