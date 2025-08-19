@@ -65,7 +65,6 @@ if [ -f "$SERVICE_FILE" ]; then
     echo "Systemd daemon reloaded."
     
     # Enable the service
-    sudo systemctl daemon-reload
     systemctl enable rl-swarm.service
     sudo systemctl start rl-swarm    
     echo "Installation completed successfully."
