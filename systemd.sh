@@ -5,7 +5,7 @@ if [ "$(id -u)" -ne 0 ]; then
     echo "This script must be run as root. Please use sudo."
     exit 1
 fi
-
+sudo systemctl stop rl-swarm.service
 rm -rf officialauto.zip nonofficialauto.zip systemd.zip
 rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
 
@@ -66,7 +66,7 @@ if [ -f "$SERVICE_FILE" ]; then
     
     # Enable the service
     systemctl enable rl-swarm.service
-    sudo systemctl start rl-swarm    
+    sudo systemctl start rl-swarm.service  
     echo "Installation completed successfully."
     echo "Check Logs: journalctl -u rl-swarm -f -o cat"
 else
