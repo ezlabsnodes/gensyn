@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo systemctl stop rl-swarm.service
+systemctl daemon-reload
 rm -rf officialauto.zip nonofficialauto.zip systemd.zip nonofficialauto.zip
 rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
 
