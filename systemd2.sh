@@ -32,7 +32,6 @@ echo -e "$slice_content" | sudo tee "$SLICE_FILE" > /dev/null
 sudo systemctl stop rl-swarm.service
 systemctl daemon-reload
 
-rm -rf create-slice.sh && wget https://github.com/ezlabsnodes/autoinstall/raw/refs/heads/main/create-slice.sh && chmod +x create-slice.sh && ./create-slice.sh
 rm -rf officialauto.zip nonofficialauto.zip systemd.zip nonofficialauto.zip
 rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
 
