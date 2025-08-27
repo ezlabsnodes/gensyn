@@ -1,4 +1,33 @@
 #!/bin/bash
+SLICE_FILE="/etc/systemd/system/rl-swarm.slice"
+RAM_REDUCTION_GB=3
+
+if [ "$(id -u)" -ne 0 ]; then
+  exit 1
+fi
+
+cpu_cores=$(nproc)
+cpu_limit_percentage=$(( (cpu_cores - 1) * 100 ))
+
+if [ "$cpu_limit_percentage" -lt 100 ]; then
+    cpu_limit_percentage=100
+fi
+
+total_gb=$(free -g | awk '/^Mem:/ {print $2}')
+
+if [ "$total_gb" -le "$RAM_REDUCTION_GB" ]; then
+  exit 1
+fi
+
+limit_gb=$((total_gb - RAM_REDUCTION_GB))
+
+slice_content="[Slice]
+Description=Slice for RL Swarm (auto-detected: ${limit_gb}G RAM, ${cpu_limit_percentage}% CPU from ${cpu_cores} cores)
+MemoryMax=${limit_gb}G
+CPUQuota=${cpu_limit_percentage}%
+"
+
+echo -e "$slice_content" | sudo tee "$SLICE_FILE" > /dev/null
 
 sudo systemctl stop rl-swarm.service
 systemctl daemon-reload
