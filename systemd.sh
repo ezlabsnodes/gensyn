@@ -52,6 +52,7 @@ cp $HOME/rl-swarm/modal-login/temp-data/userData.json $HOME/ezlabs/
 cp $HOME/rl-swarm/swarm.pem $HOME/ezlabs/
 
 # Close Screen and Remove Old Repository
+crontab -l | grep -v "/root/gensyn_monitoring.sh" | crontab -
 screen -XS gensyn quit
 cd ~
 rm -rf rl-swarm
