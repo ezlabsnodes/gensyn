@@ -5,7 +5,39 @@ if [ "$(id -u)" -ne 0 ]; then
     echo "This script must be run as root. Please use sudo."
     exit 1
 fi
+SLICE_FILE="/etc/systemd/system/rl-swarm.slice"
+RAM_REDUCTION_GB=3
+
+if [ "$(id -u)" -ne 0 ]; then
+  exit 1
+fi
+
+cpu_cores=$(nproc)
+cpu_limit_percentage=$(( (cpu_cores - 1) * 100 ))
+
+if [ "$cpu_limit_percentage" -lt 100 ]; then
+    cpu_limit_percentage=100
+fi
+
+total_gb=$(free -g | awk '/^Mem:/ {print $2}')
+
+if [ "$total_gb" -le "$RAM_REDUCTION_GB" ]; then
+  exit 1
+fi
+
+limit_gb=$((total_gb - RAM_REDUCTION_GB))
+
+slice_content="[Slice]
+Description=Slice for RL Swarm (auto-detected: ${limit_gb}G RAM, ${cpu_limit_percentage}% CPU from ${cpu_cores} cores)
+MemoryMax=${limit_gb}G
+CPUQuota=${cpu_limit_percentage}%
+"
+
+echo -e "$slice_content" | sudo tee "$SLICE_FILE" > /dev/null
+
 sudo systemctl stop rl-swarm.service
+systemctl daemon-reload
+
 rm -rf officialauto.zip nonofficialauto.zip systemd.zip
 rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
 
