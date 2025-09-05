@@ -31,7 +31,7 @@ cd ~/rl-swarm
 cp $HOME/ezlabs/swarm.pem $HOME/rl-swarm/
 
 # Create Screen and run commands
-screen -S gensyn -dm bash -c "python3 -m venv .venv && source .venv/bin/activate && chmod +x run_rl_swarm.sh && CPU_ONLY=true ./run_rl_swarm.sh"
+screen -S gensyn -dm bash -c "python3 -m venv .venv && source .venv/bin/activate && chmod +x run_rl_swarm.sh &&./run_rl_swarm.sh"
 
 echo "Script completed. The 'gensyn' screen session should be running in the background."
 echo "Check logs : tail -f $HOME/rl-swarm/logs/swarm_launcher.log"
