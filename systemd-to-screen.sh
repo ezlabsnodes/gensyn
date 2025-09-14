@@ -21,4 +21,3 @@ cp $HOME/ezlabs/swarm.pem $HOME/rl-swarm/
 screen -S gensyn -dm bash -c "source .venv/bin/activate && chmod +x run_rl_swarm.sh && ./run_rl_swarm.sh"
 
 echo "Script completed. The 'gensyn' screen session should be running in the background."
-echo "Check logs : tail -f $HOME/rl-swarm/logs/swarm_launcher.log"
