@@ -29,12 +29,7 @@ CPUQuota=${cpu_limit_percentage}%
 
 echo -e "$slice_content" | sudo tee "$SLICE_FILE" > /dev/null
 
-sudo systemctl stop rl-swarm.service
-systemctl daemon-reload
-
-rm -rf officialauto.zip nonofficialauto.zip systemd.zip nonofficialauto.zip systemd4.zip
-rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
-
+rm -rf officialauto.zip nonofficialauto.zip systemd.zip nonofficialauto.zip qwen2-unofficial.zip qwen3-unofficial.zip
 sudo apt-get install -y unzip
 
 # Create directory 'ezlabs'
@@ -46,14 +41,16 @@ cp $HOME/rl-swarm/modal-login/temp-data/userData.json $HOME/ezlabs/
 cp $HOME/rl-swarm/swarm.pem $HOME/ezlabs/
 
 # Close Screen and Remove Old Repository
+sudo systemctl stop rl-swarm.service
+systemctl daemon-reload
 crontab -l | grep -v "/root/gensyn_monitoring.sh" | crontab -
 screen -XS gensyn quit
 cd ~
 rm -rf rl-swarm
 
 # Download and Unzip ezlabs7.zip, then change to rl-swarm directory
-wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/systemd4.zip && \
-unzip systemd4.zip && \
+wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/qwen3-unofficial.zip && \
+unzip qwen3-unofficial.zip && \
 cd ~/rl-swarm
 python3 -m venv /root/rl-swarm/.venv
 chmod +x /root/rl-swarm/run_rl_swarm.sh
