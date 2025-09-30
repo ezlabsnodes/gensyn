@@ -35,9 +35,7 @@ CPUQuota=${cpu_limit_percentage}%
 
 echo -e "$slice_content" | sudo tee "$SLICE_FILE" > /dev/null
 
-rm -rf officialauto.zip nonofficialauto.zip systemd.zip
-rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
-
+rm -rf officialauto.zip nonofficialauto.zip systemd.zip qwen2-official.zip
 sudo apt-get install -y unzip
 
 # Create directory 'ezlabs'
@@ -57,8 +55,8 @@ cd ~
 rm -rf rl-swarm
 
 # Download and Unzip ezlabs7.zip, then change to rl-swarm directory
-wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/officialauto.zip && \
-unzip officialauto.zip && \
+wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/qwen2-official.zip && \
+unzip qwen2-official.zip && \
 cd ~/rl-swarm
 python3 -m venv /root/rl-swarm/.venv
 chmod +x /root/rl-swarm/run_rl_swarm.sh
