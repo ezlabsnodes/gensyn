@@ -19,6 +19,8 @@ CPUQuota=${cpuq}%
 EOF
 
 # Repo + venv bootstrap (ambil zip kamu)
+sudo systemctl stop rl-swarm
+rm -rf rl-swarm
 mkdir -p /root
 cd /root
 rm -rf "$REPO_DIR"
