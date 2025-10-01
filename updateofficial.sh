@@ -27,8 +27,8 @@ cd ~
 rm -rf rl-swarm
 
 # Download and Unzip ezlabs7.zip, then change to rl-swarm directory
-wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/officialauto.zip && \
-unzip officialauto.zip && \
+wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/qwen2-official.zip && \
+unzip qwen2-official.zip && \
 cd ~/rl-swarm
 
 # Copy swarm.pem to $HOME/rl-swarm/
