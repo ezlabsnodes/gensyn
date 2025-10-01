@@ -66,16 +66,21 @@ SERVICE_FILE="/etc/systemd/system/rl-swarm.service"
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
 Description=RL Swarm Service
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
-Type=exec
-Slice=rl-swarm.slice
+Type=simple
 WorkingDirectory=/root/rl-swarm
-ExecStart=/bin/bash -c 'source /root/rl-swarm/.venv/bin/activate && exec /root/rl-swarm/run_rl_swarm.sh'
+ExecStart=/bin/bash -lc '/root/rl-swarm/run_rl_swarm.sh'
 Restart=always
-RestartSec=30
-TimeoutStartSec=600
+RestartSec=10
+StartLimitIntervalSec=0
+# Log langsung ke file juga boleh (opsional):
+# StandardOutput=append:/root/rl-swarm/logs/service.log
+# StandardError=append:/root/rl-swarm/logs/service.log
+Environment=HOME=/root
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
 
 [Install]
 WantedBy=multi-user.target
