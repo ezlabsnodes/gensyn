@@ -6,7 +6,7 @@ systemctl daemon-reload
 
 # Remove Old files
 rm -rf officialauto.zip nonofficialauto.zip
-rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip
+rm -rf original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip ezlabs5.zip ezlabs6.zip ezlabs7.zip ezlabs8.zip qwen2-official.zip
 
 # Install Automation Tools
 sudo apt-get update
