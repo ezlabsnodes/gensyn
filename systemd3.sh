@@ -1,105 +1,158 @@
 #!/bin/bash
+set -Eeuo pipefail
 
-# Check if running as root
+# =========================
+# Root check
+# =========================
 if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root. Please use sudo."
-    exit 1
+  echo "This script must be run as root. Please use sudo."
+  exit 1
 fi
+
+# =========================
+# Paths & constants
+# =========================
 SLICE_FILE="/etc/systemd/system/rl-swarm.slice"
+SERVICE_FILE="/etc/systemd/system/rl-swarm.service"
+REPO_DIR="/root/rl-swarm"
+BACKUP_DIR="/root/ezlabs"
 RAM_REDUCTION_GB=3
 
-if [ "$(id -u)" -ne 0 ]; then
-  exit 1
-fi
-
+# =========================
+# CPU & RAM limits for slice
+# =========================
 cpu_cores=$(nproc)
 cpu_limit_percentage=$(( (cpu_cores - 1) * 100 ))
-
-if [ "$cpu_limit_percentage" -lt 100 ]; then
-    cpu_limit_percentage=100
-fi
+if [ "$cpu_limit_percentage" -lt 100 ]; then cpu_limit_percentage=100; fi
 
 total_gb=$(free -g | awk '/^Mem:/ {print $2}')
-
-if [ "$total_gb" -le "$RAM_REDUCTION_GB" ]; then
+if [ -z "${total_gb:-}" ] || [ "$total_gb" -le "$RAM_REDUCTION_GB" ]; then
+  echo "Not enough RAM to apply slice reduction (total=${total_gb:-0}G)."
   exit 1
 fi
+limit_gb=$(( total_gb - RAM_REDUCTION_GB ))
 
-limit_gb=$((total_gb - RAM_REDUCTION_GB))
-
-slice_content="[Slice]
+# =========================
+# Write slice
+# =========================
+cat > "$SLICE_FILE" <<EOF
+[Slice]
 Description=Slice for RL Swarm (auto-detected: ${limit_gb}G RAM, ${cpu_limit_percentage}% CPU from ${cpu_cores} cores)
 MemoryMax=${limit_gb}G
 CPUQuota=${cpu_limit_percentage}%
-"
+EOF
 
-echo -e "$slice_content" | sudo tee "$SLICE_FILE" > /dev/null
+# =========================
+# Clean old zips (optional)
+# =========================
+rm -rf officialauto.zip nonofficialauto.zip systemd.zip test.zip \
+       original.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip \
+       ezlabs5.zip qwen3-official.zip qwen2-unofficial.zip qwen2-official.zip || true
 
-rm -rf officialauto.zip nonofficialauto.zip systemd.zip qwen2-official.zip qwen3-official.zip
-sudo apt-get install -y unzip
+# =========================
+# Ensure unzip
+# =========================
+if ! command -v unzip >/dev/null 2>&1; then
+  apt-get update -y
+  apt-get install -y unzip
+fi
 
-# Create directory 'ezlabs'
-mkdir -p ezlabs
+# =========================
+# Preserve credentials safely
+# =========================
+mkdir -p "$BACKUP_DIR"
+if [ -f "$REPO_DIR/modal-login/temp-data/userApiKey.json" ]; then
+  cp -f "$REPO_DIR/modal-login/temp-data/userApiKey.json" "$BACKUP_DIR/" || true
+fi
+if [ -f "$REPO_DIR/modal-login/temp-data/userData.json" ]; then
+  cp -f "$REPO_DIR/modal-login/temp-data/userData.json" "$BACKUP_DIR/" || true
+fi
+if [ -f "$REPO_DIR/swarm.pem" ]; then
+  cp -f "$REPO_DIR/swarm.pem" "$BACKUP_DIR/" || true
+fi
 
-# Copy files to 'ezlabs'
-cp $HOME/rl-swarm/modal-login/temp-data/userApiKey.json $HOME/ezlabs/
-cp $HOME/rl-swarm/modal-login/temp-data/userData.json $HOME/ezlabs/
-cp $HOME/rl-swarm/swarm.pem $HOME/ezlabs/
-
-# Close Screen and Remove Old Repository
-sudo systemctl stop rl-swarm.service
+# =========================
+# Stop old service & cleanup
+# =========================
+systemctl stop rl-swarm.service 2>/dev/null || true
 systemctl daemon-reload
-crontab -l | grep -v "/root/gensyn_monitoring.sh" | crontab -
-screen -XS gensyn quit
-cd ~
-rm -rf rl-swarm
 
-# Download and Unzip ezlabs7.zip, then change to rl-swarm directory
-wget https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/qwen3-official.zip && \
-unzip qwen3-official.zip && \
-cd ~/rl-swarm
-python3 -m venv /root/rl-swarm/.venv
-chmod +x /root/rl-swarm/run_rl_swarm.sh
+# Remove cron line (ignore if no crontab)
+( crontab -l 2>/dev/null | grep -v "/root/gensyn_monitoring.sh" ) | crontab - || true
 
-# Copy swarm.pem to $HOME/rl-swarm/
-cp $HOME/ezlabs/swarm.pem $HOME/rl-swarm/
+# Close screen session if any
+screen -XS gensyn quit 2>/dev/null || true
 
-# Define service file path
-SERVICE_FILE="/etc/systemd/system/rl-swarm.service"
+# Remove old repo
+rm -rf "$REPO_DIR"
 
-# Create or overwrite the service file
-cat > "$SERVICE_FILE" <<EOF
+# =========================
+# Download fresh repo
+# =========================
+cd /root
+wget -q https://github.com/ezlabsnodes/gensyn/raw/refs/heads/main/qwen3-official.zip
+unzip -o qwen3-official.zip >/dev/null
+rm -f qwen3-official.zip
+
+# Ensure repo dir exists
+cd "$REPO_DIR"
+
+# Pre-create venv directory (optional)
+python3 -m venv "$REPO_DIR/.venv" || true
+chmod +x "$REPO_DIR/run_rl_swarm.sh"
+
+# Restore swarm.pem if backed up
+if [ -f "$BACKUP_DIR/swarm.pem" ]; then
+  cp -f "$BACKUP_DIR/swarm.pem" "$REPO_DIR/" || true
+fi
+
+# Make sure local logs dir exists (script may also log there)
+mkdir -p "$REPO_DIR/logs"
+
+# =========================
+# Create/overwrite service (journal logging)
+# =========================
+cat > "$SERVICE_FILE" <<'EOF'
 [Unit]
 Description=RL Swarm Service
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
-Type=exec
+Type=simple
 Slice=rl-swarm.slice
 WorkingDirectory=/root/rl-swarm
-ExecStart=/bin/bash -c 'source /root/rl-swarm/.venv/bin/activate && exec /root/rl-swarm/run_rl_swarm.sh'
-Restart=always
-RestartSec=30
+
+# Penting: JANGAN source venv di sini.
+# Biarkan run_rl_swarm.sh yang kelola venv (hapus/buat ulang + reinstall deps).
+ExecStart=/bin/bash -lc '/root/rl-swarm/run_rl_swarm.sh'
+
+# Buat /var/log/rl-swarm otomatis (bisa dipakai nanti jika ingin file logging)
+LogsDirectory=rl-swarm
+
+# Paling kompatibel lintas versi systemd:
+StandardOutput=journal
+StandardError=journal
+
+Restart=on-failure
+RestartSec=10
 TimeoutStartSec=600
+LimitNOFILE=65535
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Check if file was created successfully
-if [ -f "$SERVICE_FILE" ]; then
-    echo "Service file created/updated successfully at $SERVICE_FILE"
-    
-    # Reload systemd daemon
-    systemctl daemon-reload
-    echo "Systemd daemon reloaded."
-    
-    # Enable the service
-    systemctl enable rl-swarm.service
-    sudo systemctl start rl-swarm.service  
-    echo "Installation completed successfully."
-    echo "Check Logs: journalctl -u rl-swarm -f -o cat"
-else
-    echo "Failed to create service file."
-    exit 1
-fi
+# =========================
+# Enable slice & service
+# =========================
+systemctl daemon-reload
+systemctl enable rl-swarm.service
+systemctl start rl-swarm.service
+
+echo "Installation completed successfully."
+echo "Slice file   : $SLICE_FILE"
+echo "Service file : $SERVICE_FILE"
+echo "Check status : systemctl status rl-swarm --no-pager"
+echo "Follow logs  : journalctl -u rl-swarm -f -o cat"
