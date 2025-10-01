@@ -19,8 +19,6 @@ CPUQuota=${cpuq}%
 EOF
 
 # Repo + venv bootstrap (ambil zip kamu)
-sudo systemctl stop rl-swarm
-rm -rf rl-swarm
 mkdir -p /root
 cd /root
 rm -rf "$REPO_DIR"
@@ -42,19 +40,15 @@ Type=simple
 Slice=rl-swarm.slice
 WorkingDirectory=/root/rl-swarm
 ExecStart=/bin/bash -lc '/root/rl-swarm/run_rl_swarm.sh'
-
-# pakai journal biar kompatibel lintas versi systemd
 StandardOutput=journal
 StandardError=journal
 LogsDirectory=rl-swarm
-
 Restart=on-failure
 RestartSec=10
 TimeoutStartSec=600
 LimitNOFILE=65535
 KillMode=process
-
-# (opsional) Paksa CPU-only jika install torch GPU lambat:
+# (opsional) paksa CPU-only jika instalasi CUDA berat:
 # Environment=CPU_ONLY=1
 
 [Install]
