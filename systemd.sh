@@ -124,6 +124,8 @@ Group=root
 
 WorkingDirectory=/root/rl-swarm
 
+Slice=rl-swarm.slice
+
 Environment="PATH=/root/rl-swarm/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 ExecStart=/root/rl-swarm/run_rl_swarm.sh
