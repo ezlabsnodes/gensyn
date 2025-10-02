@@ -65,22 +65,40 @@ SERVICE_FILE="/etc/systemd/system/rl-swarm.service"
 # Create or overwrite the service file
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
-Description=RL Swarm Service
-After=network-online.target
+Description=Gensyn RL Swarm Service
+# Memastikan layanan dimulai setelah jaringan siap dan waktu sistem sinkron
+After=network-online.target time-sync.target
 Wants=network-online.target
 
 [Service]
-Type=simple
+# Menentukan pengguna yang menjalankan layanan, penting untuk keamanan dan perizinan
+User=root
+Group=root
+
+# Direktori kerja, sudah benar
 WorkingDirectory=/root/rl-swarm
-ExecStart=/bin/bash -lc '/root/rl-swarm/run_rl_swarm.sh'
+
+# Cara yang lebih bersih untuk menggunakan virtual environment python
+# Systemd akan menambahkan path venv di awal $PATH
+Environment="PATH=/root/rl-swarm/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Langsung menjalankan skrip. Tidak perlu 'bash -c' karena PATH sudah diatur
+ExecStart=/root/rl-swarm/run_rl_swarm.sh
+
+# Type=simple adalah default dan yang paling cocok untuk skrip ini
+# Tidak perlu ditulis secara eksplisit, tapi dicantumkan di sini untuk kejelasan
+Type=simple
+
+# Opsi restart, sudah benar
 Restart=always
-RestartSec=10
-StartLimitIntervalSec=0
-# Log langsung ke file juga boleh (opsional):
-# StandardOutput=append:/root/rl-swarm/logs/service.log
-# StandardError=append:/root/rl-swarm/logs/service.log
-Environment=HOME=/root
-Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin
+RestartSec=30
+
+# Atur batas waktu yang wajar untuk startup awal skrip
+TimeoutStartSec=600
+
+# Mengarahkan semua output (stdout/stderr) ke systemd journal
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
