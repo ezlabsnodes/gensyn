@@ -114,31 +114,29 @@ mkdir -p "$REPO_DIR/logs"
 # =========================
 cat > "$SERVICE_FILE" <<'EOF'
 [Unit]
-Description=RL Swarm Service
+Description=Gensyn RL Swarm Service
+After=network-online.target time-sync.target
 Wants=network-online.target
-After=network-online.target
 
 [Service]
-Type=simple
-Slice=rl-swarm.slice
+User=root
+Group=root
+
 WorkingDirectory=/root/rl-swarm
 
-# Penting: JANGAN source venv di sini.
-# Biarkan run_rl_swarm.sh yang kelola venv (hapus/buat ulang + reinstall deps).
-ExecStart=/bin/bash -lc '/root/rl-swarm/run_rl_swarm.sh'
+Environment="PATH=/root/rl-swarm/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-# Buat /var/log/rl-swarm otomatis (bisa dipakai nanti jika ingin file logging)
-LogsDirectory=rl-swarm
+ExecStart=/root/rl-swarm/run_rl_swarm.sh
 
-# Paling kompatibel lintas versi systemd:
+Type=simple
+
+Restart=always
+RestartSec=30
+
+TimeoutStartSec=600
+
 StandardOutput=journal
 StandardError=journal
-
-Restart=on-failure
-RestartSec=10
-TimeoutStartSec=600
-LimitNOFILE=65535
-KillMode=process
 
 [Install]
 WantedBy=multi-user.target
