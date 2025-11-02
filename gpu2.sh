@@ -45,7 +45,7 @@ EOF
 # =========================
 # Clean old zips (optional)
 # =========================
-rm -rf officialauto.zip nonofficialauto.zip systemd.zip test.zip gpu2.zip \
+rm -rf officialauto.zip nonofficialauto.zip systemd.zip test.zip gpu1.zip gpu2.zip \
        qwen2-5-1-5-b.zip original2.zip ezlabs.zip ezlabs2.zip ezlabs3.zip ezlabs4.zip \
        qwen3-unofficial.zip qwen3-official.zip qwen2-unofficial.zip qwen2-official.zip || true
 
