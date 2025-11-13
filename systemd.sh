@@ -84,7 +84,7 @@ systemctl daemon-reload
 screen -XS gensyn quit 2>/dev/null || true
 
 # Remove old repo
-rm -rf "$REPO_DIR"
+rm -rf rl-swarm
 
 # =========================
 # Download fresh repo
